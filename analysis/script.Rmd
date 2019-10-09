@@ -1,0 +1,33 @@
+---
+title: "gender-commits"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(quanteda)
+require(sqldf)
+require(readtext)
+require(wordcloud)
+setwd(".")
+```
+
+
+
+# Laod the dataset FDS (female key developers commits)
+
+
+```{r}
+fds <- read.csv("../datasets/commits_female_categorized.csv", head=T, sep=";")
+colnames(fds)
+summary(fds$class)
+```
+
+# Laod the dataset MDS (male key developers commits)
+
+```{r}
+mds <- read.csv("../datasets/commits_male_categorized.csv", head=T, sep=";")
+colnames(mds)
+summary(mds$class)
+```
+

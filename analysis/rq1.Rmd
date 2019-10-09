@@ -1,0 +1,96 @@
+---
+title: "gender-tf"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(quanteda)
+require(sqldf)
+require(readtext)
+require(wordcloud)
+require(xtable)
+require(plotrix)
+require(gdata)
+setwd(".")
+```
+
+
+### (SETUP) Laod the datasets 
+
+To answer RQ1, we use two datasets. 
+
+   * all_commiters_ds: contains information about all commiters of the projects
+   * tf_ds: contains information about all key developers of the projects
+
+
+```{r}
+all_commiters_ds <- read.csv("../datasets/all_committers_repo.csv", head=T, sep=",")
+tf_ds <- read.csv("../datasets/tf.csv", head=T, sep=";")
+colnames(all_commiters_ds)
+colnames(tf_ds)
+nrow(all_commiters_ds)
+nrow(tf_ds)
+```
+
+
+#  (RQ1) How common are women key developers in OSS projects?
+
+We answer this research question using an exploratory data analysis. 
+We first report the characteristics of the projects on Table ABC. 
+
+```{r, results="asis"}
+ds_summary <- sqldf("select language, full_name, lines, num_contributors, forks, watchers, count(*) num_tf
+                    from tf_ds 
+                    group by language, full_name, lines, num_contributors, forks, watchers")
+
+
+
+nrow(ds_summary)
+
+ds_summary_language <- sqldf("select language as 'Prog. Language', 
+                                     avg(lines) as 'Average number of lines of code', 
+                                     avg(num_contributors) as 'Average number of contributors', 
+                                     avg(forks) as 'Average number of forks' ,
+                                     avg(watchers) as 'Average number of watchers', 
+                                     avg(num_tf) as 'Average number of key developers'
+                              from ds_summary 
+                              group by language 
+                              order by 1")
+
+print(xtable(ds_summary_language), type="html")
+```
+
+Bellow we present a histogram with the number of key developers per project. 
+
+```{r}
+plot(hist(ds_summary$num_tf))
+```
+
+Let's try to understand the women participation on OSS projects. 
+
+```{r}
+all_commiters_ds["gender2"] <- ifelse(is.na(all_commiters_ds$gender), "unisex", all_commiters_ds$gender)
+summary(all_commiters_ds$gender)
+summary(tf_ds$gender)
+
+slices <- c(21250, 12987, 208384)
+lbls <- c("unissex", "female", "male")
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls, pct) # add percents to labels
+lbls <- paste(lbls,"%",sep="") # ad % to labels
+
+pie(slices, labels=lbls,explode=0.1,main="Pie Chart of Contributors")
+
+slices <- c(199, 130, 2311)
+lbls <- c("unissex", "female", "male")
+pct <- round(slices/sum(slices)*100)
+lbls <- paste(lbls, pct) # add percents to labels
+lbls <- paste(lbls,"%",sep="") # ad % to labels
+
+pie(slices, labels=lbls,explode=0.1,main="Key developers")
+```
+
+
+
+
