@@ -1,0 +1,80 @@
+---
+title: "rq3"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=5, fig.height=5, fig.path='figures/', dev=c('png', 'pdf'))
+require(quanteda)
+require(sqldf)
+require(readtext)
+require(wordcloud)
+require(xtable)
+require(plotrix)
+require(gdata)
+require(lattice)
+require(Hmisc)
+require(reshape2)
+require(slam)
+require(SentimentAnalysis)
+setwd(".")
+```
+
+# How often negative comments appear in the pull-requests from women key developers?
+
+To answer RQ3, we use one datasets. 
+
+   * prds: contains information about the pull requests from women key developers 
+   
+```{r load}
+prds <- read.csv("../datasets/pr_female_.csv", head=T, sep=";")
+colnames(prds)
+nrow(prds)
+```
+
+   * How many distinct PRs
+
+```{r distinct-prs}
+nprs <- sqldf("select count(distinct pr_id) 
+               from prds")
+
+nprs
+```
+
+   * comment distibution 
+   
+```{r comment-distribution}
+
+cmt_by_pr <- sqldf("select pr_id, count(*) as total 
+                    from prds 
+                    group by pr_id")
+
+summary(cmt_by_pr$total)
+```
+
+   * authorship (that is, how many key developers started the PRs)
+   
+```{r authorship,fig.width=8, fig.height = 3.5}
+authorship <- sqldf("select login, count(distinct pr_id) as total 
+                     from prds 
+                     group by login")
+
+nrow(authorship)
+summary(authorship$total)
+sd(authorship$total)
+bwplot(authorship$total, xlab="Number of pull requests")
+```
+
+   * Conducting the sentiment analysis 
+   
+```{r sentiment}
+pr_comment <- prds[,13]
+pr_comment <- as.character(pr_comment)
+pr_comment <- gsub("[[:punct:]]", " ", pr_comment)
+pr_comment <- gsub("\n", " ", pr_comment)
+
+
+sentiment <- analyzeSentiment(pr_comment)
+
+```

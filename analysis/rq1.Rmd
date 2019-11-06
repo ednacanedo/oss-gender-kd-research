@@ -1,10 +1,15 @@
 ---
-title: "gender-tf"
-output: html_document
+title: 'Gender Research: RQ1 Analysis'
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width=5, fig.height=5, fig.path='figures/', dev=c('png', 'pdf'))
+
 require(quanteda)
 require(sqldf)
 require(readtext)
@@ -12,6 +17,8 @@ require(wordcloud)
 require(xtable)
 require(plotrix)
 require(gdata)
+require(lattice)
+require(Hmisc)
 setwd(".")
 ```
 
@@ -31,13 +38,71 @@ colnames(all_commiters_ds)
 colnames(tf_ds)
 nrow(all_commiters_ds)
 nrow(tf_ds)
+summary(tf_ds$gender)
+summary(tf_ds$gender2)
+
 ```
 
+# Exploratory data analysis 
+
+  * Number of distinct projects
+  
+```{r, echo=FALSE}
+t1 <- sqldf("select count(distinct full_name) from tf_ds")
+t1
+```
+
+   * Number of projects with at least 5 key developers
+   
+```{r, echo=FALSE}
+t2 <- sqldf("select full_name, count(*) totalTF 
+       from tf_ds
+       group by full_name 
+       having totalTF >= 5 
+       order by 2 desc")
+
+head(t2)
+nrow(t2)
+
+nrow(t2) * 100 / t1
+```
+   
+   * Correlation: number of developers and number of TF developers
+   * Correlation: lines of code and number of TF developers 
+
+
+```{r}
+t3 <- sqldf("select full_name, num_contributors, lines, count(*) ignore
+             from tf_ds 
+             group by full_name, num_contributors, lines 
+             order by 3 desc")
+
+nrow(t3)
+head(t3)
+
+t4 <- merge(t2, t3)
+cor.test(as.numeric(t4$num_contributors), t4$totalTF, method="spearman")
+cor.test(as.numeric(t4$lines), t4$totalTF, method="spearman")
+
+```
+
+   * Total number of key developers 
+   
+```{r}
+distinct_tfs <- sqldf("select user, login, count(*) total
+                       from tf_ds 
+                       group by full_name, login 
+                       order by 3 desc")
+
+nrow(distinct_tfs)
+head(distinct_tfs, 50)
+nrow(distinct_tfs[distinct_tfs$total>1, ])
+```
 
 #  (RQ1) How common are women key developers in OSS projects?
 
 We answer this research question using an exploratory data analysis. 
-We first report the characteristics of the projects on Table ABC. 
+We first report the characteristics of the projects (see table bellow). 
 
 ```{r, results="asis"}
 ds_summary <- sqldf("select language, full_name, lines, num_contributors, forks, watchers, count(*) num_tf
@@ -61,7 +126,7 @@ ds_summary_language <- sqldf("select language as 'Prog. Language',
 print(xtable(ds_summary_language), type="html")
 ```
 
-Bellow we present a histogram with the number of key developers per project. 
+Next we present a histogram with the number of key developers per project. 
 
 ```{r}
 plot(hist(ds_summary$num_tf))
@@ -70,11 +135,33 @@ plot(hist(ds_summary$num_tf))
 Let's try to understand the women participation on OSS projects. 
 
 ```{r}
-all_commiters_ds["gender2"] <- ifelse(is.na(all_commiters_ds$gender), "unisex", all_commiters_ds$gender)
-summary(all_commiters_ds$gender)
-summary(tf_ds$gender)
+all_commiters_ds["gender_final"] <- 
+  ifelse(trim(as.character(all_commiters_ds$gender)) == "", as.character("unisex"), as.character(all_commiters_ds$gender))
 
-slices <- c(21250, 12987, 208384)
+tf_ds["gender_final"] <- 
+  ifelse(as.character(tf_ds$gender) != as.character(tf_ds$gender2), "unissex",  as.character(tf_ds$gender))
+
+# note. we have to remove duplicated data
+
+t_all_commiters <- sqldf("select name, gender_final, count(*) summaryCommiters
+                          from all_commiters_ds 
+                          group by name, gender_final 
+                          order by 3 desc")
+
+
+t_tf <- sqldf("select login, user, gender_final, count(*) summaryTF
+                       from tf_ds 
+                       group by login, user, gender_final 
+                       order by 3 desc")
+
+
+
+
+sqldf("select gender_final, count(*) total from t_all_commiters group by gender_final")
+
+sqldf("select gender_final, count(*) total from t_tf group by gender_final")
+
+slices <- c(14220, 8897, 122953)
 lbls <- c("unissex", "female", "male")
 pct <- round(slices/sum(slices)*100)
 lbls <- paste(lbls, pct) # add percents to labels
@@ -82,15 +169,114 @@ lbls <- paste(lbls,"%",sep="") # ad % to labels
 
 pie(slices, labels=lbls,explode=0.1,main="Pie Chart of Contributors")
 
-slices <- c(199, 130, 2311)
+slices <- c(241, 54, 1932)
 lbls <- c("unissex", "female", "male")
-pct <- round(slices/sum(slices)*100)
+pct <- slices/sum(slices)*100
 lbls <- paste(lbls, pct) # add percents to labels
 lbls <- paste(lbls,"%",sep="") # ad % to labels
 
 pie(slices, labels=lbls,explode=0.1,main="Key developers")
 ```
 
+That is, the percentage of women key developers is smaller then the percentage of 
+women, when considering all contributors of the projects. 
+
+Now, lets group the key developers by language and gender. 
+
+```{r}
+tf_language_female_only <- sqldf("select language, count(*) total_female 
+                             from tf_ds 
+                             where gender_final = 'female' 
+                             group by language");
+
+tf_language <- sqldf("select language, count(*) total
+                             from tf_ds 
+                             group by language")
+
+res <- merge(tf_language, tf_language_female_only)
+res["percent"] <- res$total_female * 100 / res$total
+
+res <- res[order(res$percent), ]
+
+barplot(res$percent, names.arg = res$language, las=2, ylab="Percentage", cex.axis = 0.7, ylim=range(pretty(c(0, res$percent))))
+
+# dotplot(reorder(res$language, res$percent)~res$language)
+
+# dotplot(res$percent~res$language, las=2)
+
+# dotchart2(res$percent, labels=res$language, las=2, horizontal=F, sort.=T)
+```
 
 
+How many projects have at least one women key developer? 
 
+```{r}
+sqldf("select count(distinct full_name) total_projects 
+                             from tf_ds 
+                             where gender_final = 'female'");
+
+sqldf("select count(distinct full_name) total_projects 
+                             from tf_ds");
+
+```
+
+Table 1. 
+
+```{r}
+head(ds_summary)
+
+tab1<- sqldf("select language, count(distinct full_name) projects, sum(num_contributors) contributors
+       from ds_summary 
+       group by language")
+
+tab1_kd <- sqldf("select language, count(*) as total_kds 
+             from tf_ds 
+             group by language")
+
+tab1_men <- sqldf("select language, count(*) as total_male 
+             from tf_ds 
+             where gender_final = 'male'
+             group by language")
+
+
+tab1_female <- sqldf("select language, count(*) as total_female
+                 from tf_ds 
+                 where gender_final = 'female'
+                 group by language")
+
+
+tab1_unknown <- sqldf("select language, count(*) as total_unknown
+                 from tf_ds 
+                 where gender_final = 'unissex'
+                 group by language")
+
+tab1_total_projects_with_women <- sqldf("select language, count(distinct full_name) as total_projects_with_women
+                 from tf_ds 
+                 where gender_final = 'female'
+                 group by language")
+
+tab1 <- merge(tab1, tab1_kd) 
+
+tab1 <- merge(tab1, tab1_men)
+
+
+tab1 <- merge(tab1, tab1_female)
+
+tab1 <- merge(tab1, tab1_unknown)
+
+tab1 <- merge(tab1, tab1_total_projects_with_women)
+
+tab1["percentage"] <- tab1$total_projects_with_women * 100 / tab1$projects
+
+xtable(tab1)
+
+sum(tab1$projects)
+sum(tab1$contributors)
+sum(tab1$total_kds)
+sum(tab1$total_male)
+sum(tab1$total_female)
+sum(tab1$total_unknown)
+sum(tab1$total_projects_with_women)
+mean(tab1$percentage)
+sd(tab1$percentage)
+```
