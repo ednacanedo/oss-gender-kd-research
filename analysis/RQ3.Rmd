@@ -68,13 +68,6 @@ bwplot(authorship$total, xlab="Number of pull requests")
 
    * Conducting the sentiment analysis 
    
-```{r sentiment}
-pr_comment <- prds[,13]
-pr_comment <- as.character(pr_comment)
-pr_comment <- gsub("[[:punct:]]", " ", pr_comment)
-pr_comment <- gsub("\n", " ", pr_comment)
-
-
-sentiment <- analyzeSentiment(pr_comment)
-
+```{r}
+write.csv(stringi::stri_trans_general(gsub("[\r\n]", "", gsub("[[:punct:]]", "", prds$body)),"latin-ascii"), file="~/Documents/workspace-java/SentiSE/comments.csv",row.names=FALSE)
 ```
