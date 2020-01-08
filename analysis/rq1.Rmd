@@ -1,9 +1,9 @@
 ---
 title: 'Gender Research: RQ1 Analysis'
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -19,6 +19,7 @@ require(plotrix)
 require(gdata)
 require(lattice)
 require(Hmisc)
+require(tidyverse)
 setwd(".")
 ```
 
@@ -40,7 +41,10 @@ nrow(all_commiters_ds)
 nrow(tf_ds)
 summary(tf_ds$gender)
 summary(tf_ds$gender2)
-
+tf_ds$num_contributors <- as.numeric(gsub(",","",as.character(tf_ds$num_contributors)))
+tf_ds$lines <- as.numeric(gsub(",","",as.character(tf_ds$lines)))
+tf_ds$size <- as.numeric(gsub(",","",as.character(tf_ds$size)))
+tf_ds$watchers <- as.numeric(gsub(",","",as.character(tf_ds$watchers)))
 ```
 
 # Exploratory data analysis 
@@ -55,18 +59,45 @@ t1
    * Number of projects with at least 5 key developers
    
 ```{r, echo=FALSE}
-t2 <- sqldf("select full_name, count(*) totalTF 
+t2 <- sqldf("select full_name, count(distinct login) totalTF 
        from tf_ds
        group by full_name 
        having totalTF >= 5 
        order by 2 desc")
 
-head(t2)
+head(t2,30)
 nrow(t2)
 
 nrow(t2) * 100 / t1
 ```
+
+   * Characteristics of the projects 
    
+```{r} 
+projects_ds <- sqldf("select  full_name, lines, size, num_contributors, forks, watchers, count(distinct login) num_tf
+                      from tf_ds 
+                      group by full_name, lines, size, num_contributors, forks, watchers")
+
+summary(projects_ds[,c("lines", "num_contributors", "size", "forks", "watchers")])
+```
+   
+   * It is better to remove smaller projects
+
+```{r}
+tf_ds <- filter(tf_ds, lines >= 5183, tf_ds$num_contributors >= 33)
+
+sqldf("select count(distinct full_name) from tf_ds")
+
+projects_ds <- sqldf("select  full_name, lines, size, num_contributors, forks, watchers, count(distinct login) num_tf
+                      from tf_ds 
+                      group by full_name, lines, size, num_contributors, forks, watchers")
+
+pds_summary <- as.data.frame(sapply(projects_ds[,c("lines", "num_contributors", "size", "forks", "watchers")], summary))
+
+print(xtable(t(pds_summary)), type="latex")
+
+```
+
    * Correlation: number of developers and number of TF developers
    * Correlation: lines of code and number of TF developers 
 
@@ -83,16 +114,15 @@ head(t3)
 t4 <- merge(t2, t3)
 cor.test(as.numeric(t4$num_contributors), t4$totalTF, method="spearman")
 cor.test(as.numeric(t4$lines), t4$totalTF, method="spearman")
-
 ```
 
    * Total number of key developers 
    
 ```{r}
-distinct_tfs <- sqldf("select user, login, count(*) total
+distinct_tfs <- sqldf("select full_name, count(distinct login) total
                        from tf_ds 
-                       group by full_name, login 
-                       order by 3 desc")
+                       group by full_name 
+                       order by 2 desc")
 
 nrow(distinct_tfs)
 head(distinct_tfs, 50)
@@ -105,7 +135,7 @@ We answer this research question using an exploratory data analysis.
 We first report the characteristics of the projects (see table bellow). 
 
 ```{r, results="asis"}
-ds_summary <- sqldf("select language, full_name, lines, num_contributors, forks, watchers, count(*) num_tf
+ds_summary <- sqldf("select language, full_name, lines, num_contributors, forks, watchers, count(distinct login) num_tf
                     from tf_ds 
                     group by language, full_name, lines, num_contributors, forks, watchers")
 
@@ -128,7 +158,7 @@ print(xtable(ds_summary_language), type="html")
 
 Next we present a histogram with the number of key developers per project. 
 
-```{r}
+```{r hist}
 plot(hist(ds_summary$num_tf))
 ```
 
@@ -157,11 +187,11 @@ t_tf <- sqldf("select login, user, gender_final, count(*) summaryTF
 
 
 
-sqldf("select gender_final, count(*) total from t_all_commiters group by gender_final")
+sqldf("select gender_final, count(*) total from all_commiters_ds group by gender_final")
 
-sqldf("select gender_final, count(*) total from t_tf group by gender_final")
+sqldf("select gender_final, count(*) total from tf_ds group by gender_final")
 
-slices <- c(14220, 8897, 122953)
+slices <- c(21250, 12987, 208384)
 lbls <- c("unissex", "female", "male")
 pct <- round(slices/sum(slices)*100)
 lbls <- paste(lbls, pct) # add percents to labels
@@ -169,7 +199,7 @@ lbls <- paste(lbls,"%",sep="") # ad % to labels
 
 pie(slices, labels=lbls,explode=0.1,main="Pie Chart of Contributors")
 
-slices <- c(241, 54, 1932)
+slices <- c(195, 45, 1762)
 lbls <- c("unissex", "female", "male")
 pct <- slices/sum(slices)*100
 lbls <- paste(lbls, pct) # add percents to labels
@@ -183,7 +213,7 @@ women, when considering all contributors of the projects.
 
 Now, lets group the key developers by language and gender. 
 
-```{r}
+```{r bp-language}
 tf_language_female_only <- sqldf("select language, count(*) total_female 
                              from tf_ds 
                              where gender_final = 'female' 
@@ -223,7 +253,7 @@ sqldf("select count(distinct full_name) total_projects
 Table 1. 
 
 ```{r}
-head(ds_summary)
+head(ds_summary, results='asis')
 
 tab1<- sqldf("select language, count(distinct full_name) projects, sum(num_contributors) contributors
        from ds_summary 
@@ -268,7 +298,7 @@ tab1 <- merge(tab1, tab1_total_projects_with_women)
 
 tab1["percentage"] <- tab1$total_projects_with_women * 100 / tab1$projects
 
-xtable(tab1)
+print(xtable(tab1[,c("language", "projects", "contributors", "total_kds", "total_male", "total_female", "total_unknown", "total_projects_with_women", "percentage")]), type='latex')
 
 sum(tab1$projects)
 sum(tab1$contributors)

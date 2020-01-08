@@ -21,11 +21,12 @@ setwd(".")
 
 ## How do the contributions of women key developers compare to the contributions of men key developers
 
-To answer RQ1, we use two datasets. 
+To answer RQ2, we use the following datasets. 
 
    * f_commits_ds: contains information about female contributions in terms of commits
    * m_commits_s1_ds: contains information about the first sample of male contributions in terms of commits 
    * m_commits_s2_ds: contains information about the second sample of male contributions in terms of commits 
+   * m_commits_s3_ds: contains information about the third sample of male contributions in terms of commits 
    
 ```{r cars}
 f_commits_ds <- read.csv("../datasets/commits_female_categorized.csv", head=T, sep=";")
@@ -36,15 +37,13 @@ f_commits_ds["commit_date"] <- as.character(as.Date(strptime((f_commits_ds$last_
 f_commits_ds$gender <- "female"
 f_commits_ds$genderGroup <- "WKD"
 
-
-
 m_commits_s1_ds <- read.csv("../datasets/commits_male_s1_categorized.csv", head=T, sep=";")
 colnames(m_commits_s1_ds)
 nrow(m_commits_s1_ds)
 
 m_commits_s1_ds["commit_date"] <- as.character(as.Date(strptime((m_commits_s1_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
 m_commits_s1_ds$gender <- "male"
-m_commits_s1_ds$genderGroup <- "MKD-S1"
+m_commits_s1_ds$genderGroup <- "MKD1"
 
 
 
@@ -54,11 +53,21 @@ nrow(m_commits_s2_ds)
 
 m_commits_s2_ds["commit_date"] <- as.character(as.Date(strptime((m_commits_s2_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
 m_commits_s2_ds$gender <- "male"
-m_commits_s2_ds$genderGroup <- "MKD-S2"
+m_commits_s2_ds$genderGroup <- "MKD2"
+
+
+m_commits_s3_ds <- read.csv("../datasets/commits_male_s3_categorized.csv", head=T, sep=";")
+colnames(m_commits_s3_ds)
+nrow(m_commits_s3_ds)
+
+m_commits_s3_ds["commit_date"] <- as.character(as.Date(strptime((m_commits_s3_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
+m_commits_s3_ds$gender <- "male"
+m_commits_s3_ds$genderGroup <- "MKD3"
 
 commits_ds <- rbind(f_commits_ds, m_commits_s1_ds)
-
 commits_ds <- rbind(commits_ds, m_commits_s2_ds)
+commits_ds <- rbind(commits_ds, m_commits_s3_ds)
+
 colnames(commits_ds)
 nrow(commits_ds)
 sqldf("select count (distinct(commit_date)) from commits_ds")
@@ -70,6 +79,20 @@ sqldf("select count(distinct login) from f_commits_ds")
 sqldf("select count(distinct login) from m_commits_s1_ds")
 
 sqldf("select count(distinct login) from m_commits_s2_ds")
+
+sqldf("select count(distinct login) from m_commits_s3_ds")
+
+head(sqldf("select  login, count(*) from m_commits_s3_ds 
+       group by login order by 2 desc"))
+
+# remove an outilier contributor 
+
+commits_ds <- commits_ds[commits_ds$login != "michaelni",] 
+
+nrow(commits_ds) 
+sqldf("select genderGroup, count(*) 
+       from commits_ds 
+      group by genderGroup")
 ```
 
 
@@ -96,7 +119,11 @@ commits_by_user <- sqldf("select login, gender, genderGroup,
 colnames(commits_by_user)
 nrow(commits_by_user)
 
-bwplot(commits_by_user$commits~commits_by_user$genderGroup, ylab="Total number of contributions (commits)")
+bwplot(commits_by_user$commits~commits_by_user$genderGroup, ylab="Total number of contributions (commits)", par.settings = list(
+                               axis.text = list(cex = 0.75),
+                               par.xlab.text = list(cex = 0.75),
+                               par.ylab.text = list(cex = 0.75)
+                          ))
 
 wilcox.test(commits_by_user$commits~commits_by_user$gender)
 ```
@@ -105,10 +132,14 @@ wilcox.test(commits_by_user$commits~commits_by_user$gender)
 ```{r bw-frequency,fig.width=5, fig.height = 3.5}
 commits_by_user["date_diff"] = as.numeric(difftime(as.Date(commits_by_user$max_date), as.Date(commits_by_user$min_date), units="days"))
 commits_by_user["frequency2"] = 100*commits_by_user$frequency / commits_by_user$date_diff 
-bwplot(commits_by_user$frequency~commits_by_user$genderGroup, ylab="Frequency of commits")
-head(commits_by_user[,c("max_date", "min_date", "date_diff", "frequency", "frequency2", "commits")])
+
 cor.test(commits_by_user$frequency2, commits_by_user$commits, method="spearman")
-bwplot(commits_by_user$frequency2~commits_by_user$genderGroup, ylab="Frequency of commits")
+
+bwplot(commits_by_user$frequency2~commits_by_user$genderGroup, ylab="Frequency of commits", par.settings = list(
+                               axis.text = list(cex = 0.75),
+                               par.xlab.text = list(cex = 0.75),
+                               par.ylab.text = list(cex = 0.75)
+                          ))
 
 wilcox.test(commits_by_user$frequency2~commits_by_user$gender)
 
@@ -121,7 +152,7 @@ summary(commits_by_user[commits_by_user$gender == 'male',]$frequency2)
 
    * considering lines of code
 
-```{r bw-size,fig.width=5, fig.height = 3.5} 
+```{r bw-size, fig.width= 7,fig.height = 3.5} 
 lines <- commits_by_user[,c("login", "gender", "genderGroup", "lines_added", "lines_changed", "lines_deleted")]
 
 lines <- melt(lines, id.vars = c("login", "gender", "genderGroup"))
@@ -133,7 +164,11 @@ lines$variable <- gsub("lines_changed", "Lines Changed", lines$variable)
 lines$variable <- gsub("lines_deleted", "Lines Deleted", lines$variable)
 
 
-bwplot(log(value)~genderGroup|variable, data=lines,ylab="Lines of Code (log scale)",layout=c(3,1))
+bwplot(log(value)~genderGroup|variable, data=lines,ylab="Lines of Code (log scale)",layout=c(3,1), par.settings = list(
+                               axis.text = list(cex = 0.55),
+                               par.xlab.text = list(cex = 0.75),
+                               par.ylab.text = list(cex = 0.75)
+                          ), par.strip.text = list(cex = 0.65))
 
 ld <- lines[lines$variable == "Lines Deleted", ]
 head(ld)
@@ -142,7 +177,7 @@ wilcox.test(ld$value~ld$gender)
 ```
 
 
-   * considering lines of code
+   * considering number of files
 
 ```{r} 
 files <- commits_by_user[,c("login", "gender", "genderGroup", "files_added", "files_changed", "files_deleted")]
@@ -184,25 +219,33 @@ chisq.test(commits_ds$class, commits_ds$gender)
 
 There is a huge difference in the number of commits. Perhaps we should first balance the dataset. 
 
-```{r bw-balanced-contribution, fig.width=8, fig.height = 3.5}
+```{r bw-balanced-contribution, fig.width=10, fig.height = 3.5}
 m_commits_s1_ds <- m_commits_s1_ds[sample(nrow(m_commits_s1_ds), 22326, replace = FALSE, prob = NULL),]
 
 m_commits_s2_ds <- m_commits_s2_ds[sample(nrow(m_commits_s2_ds), 22326, replace = FALSE, prob = NULL),]
+
+m_commits_s3_ds <- m_commits_s3_ds[sample(nrow(m_commits_s3_ds), 22326, replace = FALSE, prob = NULL),]
+
 nrow(f_commits_ds)
 nrow(m_commits_s1_ds)
 nrow(m_commits_s2_ds)
+nrow(m_commits_s3_ds)
 
 
 commits_ds <- rbind(f_commits_ds, m_commits_s1_ds)
-
 commits_ds <- rbind(commits_ds, m_commits_s2_ds)
+commits_ds <- rbind(commits_ds, m_commits_s3_ds)
 
 contributions_ds <- sqldf("select login, gender, genderGroup, class, count(*) total
                            from commits_ds 
                            group by login, gender, genderGroup, class")
 
 
-bwplot(log(total)~genderGroup|class, data=contributions_ds, par.strip.text=list(cex=0.75),layout=c(5,1))
+bwplot(log(total)~genderGroup|class, data=contributions_ds,  par.settings = list(
+                               axis.text = list(cex = 0.55),
+                               par.xlab.text = list(cex = 0.75),
+                               par.ylab.text = list(cex = 0.75)
+                          ),  par.strip.text = list(cex = 0.65), layout=c(5,1))
 
 chisq.test(commits_ds$class, commits_ds$gender)
 ```
