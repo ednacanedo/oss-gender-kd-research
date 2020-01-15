@@ -1,5 +1,5 @@
 ---
-title: "rq2"
+title: "Research Question 2"
 output: html_document
 ---
 
@@ -16,24 +16,29 @@ require(gdata)
 require(lattice)
 require(Hmisc)
 require(reshape2)
+require(nparcomp)
 setwd(".")
 ```
 
-## How do the contributions of women key developers compare to the contributions of men key developers
+## How do the contributions of women key developers compare to the contributions of men key developers?
 
-To answer RQ2, we use the following datasets. 
+To answer RQ2, we use four following datasets. 
 
    * f_commits_ds: contains information about female contributions in terms of commits
    * m_commits_s1_ds: contains information about the first sample of male contributions in terms of commits 
    * m_commits_s2_ds: contains information about the second sample of male contributions in terms of commits 
    * m_commits_s3_ds: contains information about the third sample of male contributions in terms of commits 
-   
-```{r cars}
+
+We first load these datasets, show some basic information, and perform some data cleanup. 
+
+```{r load}
 f_commits_ds <- read.csv("../datasets/commits_female_categorized.csv", head=T, sep=";")
 colnames(f_commits_ds)
 nrow(f_commits_ds)
 
-f_commits_ds["commit_date"] <- as.character(as.Date(strptime((f_commits_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
+f_commits_ds["commit_date"] <- as.character(as.Date(strptime((
+   f_commits_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
+
 f_commits_ds$gender <- "female"
 f_commits_ds$genderGroup <- "WKD"
 
@@ -41,17 +46,20 @@ m_commits_s1_ds <- read.csv("../datasets/commits_male_s1_categorized.csv", head=
 colnames(m_commits_s1_ds)
 nrow(m_commits_s1_ds)
 
-m_commits_s1_ds["commit_date"] <- as.character(as.Date(strptime((m_commits_s1_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
+m_commits_s1_ds["commit_date"] <- as.character(as.Date(strptime((
+   m_commits_s1_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
+
 m_commits_s1_ds$gender <- "male"
 m_commits_s1_ds$genderGroup <- "MKD1"
-
 
 
 m_commits_s2_ds <- read.csv("../datasets/commits_male_s2_categorized.csv", head=T, sep=";")
 colnames(m_commits_s2_ds)
 nrow(m_commits_s2_ds)
 
-m_commits_s2_ds["commit_date"] <- as.character(as.Date(strptime((m_commits_s2_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
+m_commits_s2_ds["commit_date"] <- as.character(as.Date(strptime((
+   m_commits_s2_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
+
 m_commits_s2_ds$gender <- "male"
 m_commits_s2_ds$genderGroup <- "MKD2"
 
@@ -60,7 +68,9 @@ m_commits_s3_ds <- read.csv("../datasets/commits_male_s3_categorized.csv", head=
 colnames(m_commits_s3_ds)
 nrow(m_commits_s3_ds)
 
-m_commits_s3_ds["commit_date"] <- as.character(as.Date(strptime((m_commits_s3_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
+m_commits_s3_ds["commit_date"] <- as.character(as.Date(strptime((
+   m_commits_s3_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
+
 m_commits_s3_ds$gender <- "male"
 m_commits_s3_ds$genderGroup <- "MKD3"
 
@@ -96,9 +106,12 @@ sqldf("select genderGroup, count(*)
 ```
 
 
-# Summarizing our dataset 
+### Summarizing our dataset 
 
-```{r boxplot1,fig.width=5, fig.height = 3.5}
+Let's summarize our dataset by key developer, and also preserving 
+his / gender and gender group. 
+
+```{r consolidate}
 commits_by_user <- sqldf("select login, gender, genderGroup,
                                  count(distinct hash_commit) commits,
                                  max(commit_date) max_date, 
@@ -118,42 +131,75 @@ commits_by_user <- sqldf("select login, gender, genderGroup,
 
 colnames(commits_by_user)
 nrow(commits_by_user)
-
-bwplot(commits_by_user$commits~commits_by_user$genderGroup, ylab="Total number of contributions (commits)", par.settings = list(
-                               axis.text = list(cex = 0.75),
-                               par.xlab.text = list(cex = 0.75),
-                               par.ylab.text = list(cex = 0.75)
-                          ))
-
-wilcox.test(commits_by_user$commits~commits_by_user$gender)
 ```
 
+### Hypothesis testing about the number of commits. 
+
+Now we can verify if there is any difference between these groups, in terms of total number of commits. 
+
+   * First showing the boxplts 
+   
+```{r boxplot1,fig.width=5, fig.height = 3.5}
+bwplot(commits_by_user$commits~commits_by_user$genderGroup, 
+       ylab="Total number of contributions (commits)",    
+       par.settings = list(
+                           axis.text = list(cex = 0.75),
+                           par.xlab.text = list(cex = 0.75),
+                           par.ylab.text = list(cex = 0.75)
+                          ))
+
+```
+
+   * Second performing a multicomparison test (using the Dunnett's method)
+   
+```{r dunnet-commits}
+c<-nparcomp(commits~genderGroup, data=commits_by_user, asy.method = "probit", 
+            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+
+summary(c)
+```
+
+### Hypothesis testing about the frequency of commits. 
+
+Now we can verify if there is any difference between these groups, in terms of frequency of commits. 
+
+   * First computing the metrics and showing the boxplts 
 
 ```{r bw-frequency,fig.width=5, fig.height = 3.5}
-commits_by_user["date_diff"] = as.numeric(difftime(as.Date(commits_by_user$max_date), as.Date(commits_by_user$min_date), units="days"))
+commits_by_user["date_diff"] = as.numeric(difftime(as.Date(commits_by_user$max_date), 
+                                                   as.Date(commits_by_user$min_date), units="days"))
+
 commits_by_user["frequency2"] = 100*commits_by_user$frequency / commits_by_user$date_diff 
 
 cor.test(commits_by_user$frequency2, commits_by_user$commits, method="spearman")
 
-bwplot(commits_by_user$frequency2~commits_by_user$genderGroup, ylab="Frequency of commits", par.settings = list(
-                               axis.text = list(cex = 0.75),
-                               par.xlab.text = list(cex = 0.75),
-                               par.ylab.text = list(cex = 0.75)
+bwplot(commits_by_user$frequency2~commits_by_user$genderGroup, ylab="Frequency of commits", 
+       par.settings = list(
+                           axis.text = list(cex = 0.75),
+                           par.xlab.text = list(cex = 0.75),
+                           par.ylab.text = list(cex = 0.75)
                           ))
 
-wilcox.test(commits_by_user$frequency2~commits_by_user$gender)
-
-
-summary(commits_by_user[commits_by_user$gender == 'female',]$frequency2)
-summary(commits_by_user[commits_by_user$gender == 'male',]$frequency2)
 ```
 
-# Size of the contribution
+   * Second performing a multicomparison test (using the Dunnett's method)
 
-   * considering lines of code
+```{r dunnet-frequency}
+c<-nparcomp(commits~genderGroup, data=commits_by_user, asy.method = "probit", 
+            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
 
-```{r bw-size, fig.width= 7,fig.height = 3.5} 
-lines <- commits_by_user[,c("login", "gender", "genderGroup", "lines_added", "lines_changed", "lines_deleted")]
+
+summary(c)
+```
+
+
+### Hypothesis testing about the size of the contributions 
+
+#### Considering lines of code
+
+```{r bw-line-size, fig.width= 7,fig.height = 3.5} 
+lines <- commits_by_user[,c("login", "gender", "genderGroup", 
+                            "lines_added", "lines_changed", "lines_deleted")]
 
 lines <- melt(lines, id.vars = c("login", "gender", "genderGroup"))
 
@@ -164,23 +210,45 @@ lines$variable <- gsub("lines_changed", "Lines Changed", lines$variable)
 lines$variable <- gsub("lines_deleted", "Lines Deleted", lines$variable)
 
 
-bwplot(log(value)~genderGroup|variable, data=lines,ylab="Lines of Code (log scale)",layout=c(3,1), par.settings = list(
-                               axis.text = list(cex = 0.55),
-                               par.xlab.text = list(cex = 0.75),
-                               par.ylab.text = list(cex = 0.75)
-                          ), par.strip.text = list(cex = 0.65))
+bwplot(log(value)~genderGroup|variable, data=lines, 
+       ylab="Lines of Code (log scale)", layout=c(3,1), 
+       par.settings = list(
+                           axis.text = list(cex = 0.55),
+                           par.xlab.text = list(cex = 0.75),
+                           par.ylab.text = list(cex = 0.75)
+                          ), 
+       par.strip.text = list(cex = 0.65))
 
+la <- lines[lines$variable == "Lines Added", ]
+lc <- lines[lines$variable == "Lines Changed", ]
 ld <- lines[lines$variable == "Lines Deleted", ]
-head(ld)
-shapiro.test(ld$value)
-wilcox.test(ld$value~ld$gender)
+
+
+c<-nparcomp(value~genderGroup, data=la, asy.method = "probit", 
+            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+
+summary(c)
+
+
+c<-nparcomp(value~genderGroup, data=lc, asy.method = "probit", 
+            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+
+
+summary(c)
+
+c<-nparcomp(value~genderGroup, data=ld, asy.method = "probit", 
+            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+
+
+summary(c)
 ```
 
 
-   * considering number of files
+#### Considering number of files
 
-```{r} 
-files <- commits_by_user[,c("login", "gender", "genderGroup", "files_added", "files_changed", "files_deleted")]
+```{r bw-file-size, fig.width= 7,fig.height = 3.5} 
+files <- commits_by_user[,c("login", "gender", "genderGroup", 
+                            "files_added", "files_changed", "files_deleted")]
 
 files <- melt(files, id.vars = c("login", "gender", "genderGroup"))
 
@@ -192,20 +260,48 @@ files$variable <- gsub("files_deleted", "Files Deleted", files$variable)
 
 
 bwplot(log(value)~genderGroup|variable, data=files,ylab="Number of Files (Log Scale)",layout=c(3,1))
+
+
+fa <- files[files$variable == "Files Added", ]
+fc <- files[files$variable == "Files Changed", ]
+fd <- files[files$variable == "Files Deleted", ]
+
+c<-nparcomp(value~genderGroup, data=fa, asy.method = "probit", 
+            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+
+
+summary(c)
+
+c<-nparcomp(value~genderGroup, data=fc, asy.method = "probit", 
+            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+
+
+summary(c)
+
+
+c<-nparcomp(value~genderGroup, data=fd, asy.method = "probit", 
+            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+
+
+summary(c)
+
 ```
 
-# Type of the contributions 
+### Hypothesis testing about the type of the contributions 
 
-```{r bw-contribution, fig.width=8, fig.height = 3.5}
+   * First, lets investigate the size of the comments in the commits. 
+   
+```{r bw-comments, fig.width=8, fig.height = 3.5}
 commits_ds["comment_size"] = nchar(as.character(commits_ds$message))
 
 boxplot(log(commits_ds$comment_size)~commits_ds$genderGroup)
 
-wilcox.test(commits_ds$comment_size~commits_ds$gender)
+wilcox.test(comment_size~gender, data = commits_ds)
+```
 
-summary(commits_ds[commits_ds$gender == 'female',]$comment_size)
-summary(commits_ds[commits_ds$gender == 'male',]$comment_size)
+   * Second, lets investigate the type of the contributions. 
 
+```{r bw-contribution, fig.width=8, fig.height = 3.5}
 
 contributions_ds <- sqldf("select login, gender, genderGroup, class, count(*) total
                            from commits_ds 

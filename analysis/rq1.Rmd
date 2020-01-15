@@ -20,6 +20,7 @@ require(gdata)
 require(lattice)
 require(Hmisc)
 require(tidyverse)
+require(ggplot2)
 setwd(".")
 ```
 
@@ -37,10 +38,13 @@ all_commiters_ds <- read.csv("../datasets/all_committers_repo.csv", head=T, sep=
 tf_ds <- read.csv("../datasets/tf.csv", head=T, sep=";")
 colnames(all_commiters_ds)
 colnames(tf_ds)
+
 nrow(all_commiters_ds)
 nrow(tf_ds)
+
 summary(tf_ds$gender)
 summary(tf_ds$gender2)
+
 tf_ds$num_contributors <- as.numeric(gsub(",","",as.character(tf_ds$num_contributors)))
 tf_ds$lines <- as.numeric(gsub(",","",as.character(tf_ds$lines)))
 tf_ds$size <- as.numeric(gsub(",","",as.character(tf_ds$size)))
@@ -74,7 +78,8 @@ nrow(t2) * 100 / t1
    * Characteristics of the projects 
    
 ```{r} 
-projects_ds <- sqldf("select  full_name, lines, size, num_contributors, forks, watchers, count(distinct login) num_tf
+projects_ds <- sqldf("select full_name, lines, size, num_contributors, 
+                             forks, watchers, count(distinct login) num_tf
                       from tf_ds 
                       group by full_name, lines, size, num_contributors, forks, watchers")
 
@@ -88,14 +93,16 @@ tf_ds <- filter(tf_ds, lines >= 5183, tf_ds$num_contributors >= 33)
 
 sqldf("select count(distinct full_name) from tf_ds")
 
-projects_ds <- sqldf("select  full_name, lines, size, num_contributors, forks, watchers, count(distinct login) num_tf
+projects_ds <- sqldf("select full_name, lines, size, num_contributors, 
+                             forks, watchers, count(distinct login) num_tf
                       from tf_ds 
                       group by full_name, lines, size, num_contributors, forks, watchers")
 
-pds_summary <- as.data.frame(sapply(projects_ds[,c("lines", "num_contributors", "size", "forks", "watchers")], summary))
+pds_summary <- as.data.frame(sapply(
+                  projects_ds[,c("lines", "num_contributors", "size", "forks", "watchers")], 
+                  summary))
 
 print(xtable(t(pds_summary)), type="latex")
-
 ```
 
    * Correlation: number of developers and number of TF developers
@@ -135,7 +142,8 @@ We answer this research question using an exploratory data analysis.
 We first report the characteristics of the projects (see table bellow). 
 
 ```{r, results="asis"}
-ds_summary <- sqldf("select language, full_name, lines, num_contributors, forks, watchers, count(distinct login) num_tf
+ds_summary <- sqldf("select language, full_name, lines, 
+                            num_contributors, forks, watchers, count(distinct login) num_tf
                     from tf_ds 
                     group by language, full_name, lines, num_contributors, forks, watchers")
 
@@ -159,7 +167,19 @@ print(xtable(ds_summary_language), type="html")
 Next we present a histogram with the number of key developers per project. 
 
 ```{r hist}
-plot(hist(ds_summary$num_tf))
+plot(hist(ds_summary$num_tf), xlab = "Number of key developers", main="")
+density(ds_summary$num_tf, xlab = "Number of key developers", main="")
+
+qplot(ds_summary$num_tf, 
+      geom = "histogram", 
+      binwidth = 3, 
+      xlim=c(0,30), 
+      ylim=c(0, 500),
+      fill=I("blue"), 
+      col=I("red"), 
+      alpha=I(.2),
+      xlab="Number of key developers", 
+      ylab="Count")
 ```
 
 Let's try to understand the women participation on OSS projects. 
