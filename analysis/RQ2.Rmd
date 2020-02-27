@@ -182,10 +182,16 @@ bwplot(commits_by_user$frequency2~commits_by_user$genderGroup, ylab="Frequency o
 
 ```
 
-   * Second performing a multicomparison test (using the Dunnett's method)
+   * Second computing the summary of the observations
+```{r freq-summary}
+summary(commits_by_user[commits_by_user$gender == 'female',]$frequency2)
+summary(commits_by_user[commits_by_user$gender == 'male',]$frequency2)
+```
+
+   * Third performing a multicomparison test (using the Dunnett's method)
 
 ```{r dunnet-frequency}
-c<-nparcomp(commits~genderGroup, data=commits_by_user, asy.method = "probit", 
+c<-nparcomp(frequency2~genderGroup, data=commits_by_user, asy.method = "probit", 
             type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
 
 
