@@ -1,9 +1,9 @@
 ---
 title: 'Gender Research: RQ1 Analysis'
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -141,7 +141,7 @@ nrow(distinct_tfs[distinct_tfs$total>1, ])
 We answer this research question using an exploratory data analysis. 
 We first report the characteristics of the projects (see table bellow). 
 
-```{r, results="asis"}
+```{r}
 ds_summary <- sqldf("select language, full_name, lines, 
                             num_contributors, forks, watchers, count(distinct login) num_tf
                     from tf_ds 
@@ -161,14 +161,14 @@ ds_summary_language <- sqldf("select language as 'Prog. Language',
                               group by language 
                               order by 1")
 
-print(xtable(ds_summary_language), type="html")
+print(xtable(ds_summary_language), type="latex")
 ```
 
 Next we present a histogram with the number of key developers per project. 
 
 ```{r hist}
-plot(hist(ds_summary$num_tf), xlab = "Number of key developers", main="")
-density(ds_summary$num_tf, xlab = "Number of key developers", main="")
+plot(hist(ds_summary$num_tf), xlab = "Number of core developers", main="")
+density(ds_summary$num_tf, xlab = "Number of core developers", main="")
 
 qplot(ds_summary$num_tf, 
       geom = "histogram", 
@@ -178,7 +178,7 @@ qplot(ds_summary$num_tf,
       fill=I("blue"), 
       col=I("red"), 
       alpha=I(.2),
-      xlab="Number of key developers", 
+      xlab="Number of core developers", 
       ylab="Count")
 ```
 
@@ -228,10 +228,10 @@ lbls <- paste(lbls,"%",sep="") # ad % to labels
 pie(slices, labels=lbls,explode=0.1,main="Key developers")
 ```
 
-That is, the percentage of women key developers is smaller then the percentage of 
+That is, the percentage of women core developers is smaller then the percentage of 
 women, when considering all contributors of the projects. 
 
-Now, lets group the key developers by language and gender. 
+Now, lets group the core developers by language and gender. 
 
 ```{r bp-language}
 tf_language_female_only <- sqldf("select language, count(*) total_female 
@@ -258,7 +258,7 @@ barplot(res$percent, names.arg = res$language, las=2, ylab="Percentage", cex.axi
 ```
 
 
-How many projects have at least one women key developer? 
+How many projects have at least one women core developer? 
 
 ```{r}
 sqldf("select count(distinct full_name) total_projects 
@@ -273,7 +273,7 @@ sqldf("select count(distinct full_name) total_projects
 Table 1. 
 
 ```{r}
-head(ds_summary, results='asis')
+head(ds_summary)
 
 tab1<- sqldf("select language, count(distinct full_name) projects, sum(num_contributors) contributors
        from ds_summary 

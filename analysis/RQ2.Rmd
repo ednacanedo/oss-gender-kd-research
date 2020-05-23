@@ -40,7 +40,7 @@ f_commits_ds["commit_date"] <- as.character(as.Date(strptime((
    f_commits_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
 
 f_commits_ds$gender <- "female"
-f_commits_ds$genderGroup <- "WKD"
+f_commits_ds$genderGroup <- "WCD"
 
 m_commits_s1_ds <- read.csv("../datasets/commits_male_s1_categorized.csv", head=T, sep=";")
 colnames(m_commits_s1_ds)
@@ -50,7 +50,7 @@ m_commits_s1_ds["commit_date"] <- as.character(as.Date(strptime((
    m_commits_s1_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
 
 m_commits_s1_ds$gender <- "male"
-m_commits_s1_ds$genderGroup <- "MKD1"
+m_commits_s1_ds$genderGroup <- "MCD1"
 
 
 m_commits_s2_ds <- read.csv("../datasets/commits_male_s2_categorized.csv", head=T, sep=";")
@@ -61,7 +61,7 @@ m_commits_s2_ds["commit_date"] <- as.character(as.Date(strptime((
    m_commits_s2_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
 
 m_commits_s2_ds$gender <- "male"
-m_commits_s2_ds$genderGroup <- "MKD2"
+m_commits_s2_ds$genderGroup <- "MCD2"
 
 
 m_commits_s3_ds <- read.csv("../datasets/commits_male_s3_categorized.csv", head=T, sep=";")
@@ -72,7 +72,7 @@ m_commits_s3_ds["commit_date"] <- as.character(as.Date(strptime((
    m_commits_s3_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
 
 m_commits_s3_ds$gender <- "male"
-m_commits_s3_ds$genderGroup <- "MKD3"
+m_commits_s3_ds$genderGroup <- "MCD3"
 
 commits_ds <- rbind(f_commits_ds, m_commits_s1_ds)
 commits_ds <- rbind(commits_ds, m_commits_s2_ds)
@@ -154,7 +154,7 @@ bwplot(commits_by_user$commits~commits_by_user$genderGroup,
    
 ```{r dunnet-commits}
 c<-nparcomp(commits~genderGroup, data=commits_by_user, asy.method = "probit", 
-            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+            type = "Dunnett", control = "WCD", alternative = "two.sided", info = FALSE)
 
 summary(c)
 ```
@@ -192,7 +192,7 @@ summary(commits_by_user[commits_by_user$gender == 'male',]$frequency2)
 
 ```{r dunnet-frequency}
 c<-nparcomp(frequency2~genderGroup, data=commits_by_user, asy.method = "probit", 
-            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+            type = "Dunnett", control = "WCD", alternative = "two.sided", info = FALSE)
 
 
 summary(c)
@@ -231,19 +231,19 @@ ld <- lines[lines$variable == "Lines Deleted", ]
 
 
 c<-nparcomp(value~genderGroup, data=la, asy.method = "probit", 
-            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+            type = "Dunnett", control = "WCD", alternative = "two.sided", info = FALSE)
 
 summary(c)
 
 
 c<-nparcomp(value~genderGroup, data=lc, asy.method = "probit", 
-            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+            type = "Dunnett", control = "WCD", alternative = "two.sided", info = FALSE)
 
 
 summary(c)
 
 c<-nparcomp(value~genderGroup, data=ld, asy.method = "probit", 
-            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+            type = "Dunnett", control = "WCD", alternative = "two.sided", info = FALSE)
 
 
 summary(c)
@@ -273,20 +273,20 @@ fc <- files[files$variable == "Files Changed", ]
 fd <- files[files$variable == "Files Deleted", ]
 
 c<-nparcomp(value~genderGroup, data=fa, asy.method = "probit", 
-            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+            type = "Dunnett", control = "WCD", alternative = "two.sided", info = FALSE)
 
 
 summary(c)
 
 c<-nparcomp(value~genderGroup, data=fc, asy.method = "probit", 
-            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+            type = "Dunnett", control = "WCD", alternative = "two.sided", info = FALSE)
 
 
 summary(c)
 
 
 c<-nparcomp(value~genderGroup, data=fd, asy.method = "probit", 
-            type = "Dunnett", control = "WKD", alternative = "two.sided", info = FALSE)
+            type = "Dunnett", control = "WCD", alternative = "two.sided", info = FALSE)
 
 
 summary(c)
