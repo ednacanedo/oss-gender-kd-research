@@ -35,6 +35,6 @@ in open-source communities does not relate to gender bias of the communities.
 ## Data Analysis
 
    * Research Question 1
-   * Research Question 2
+   * [Research Question 2](https://htmlpreview.github.io/?https://github.com/ednacanedo/oss-gender-kd-research/blob/master/analysis/RQ2.html)
    * Research Question 3
    
