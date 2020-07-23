@@ -1,6 +1,11 @@
 ---
-title: "rq3"
-output: html_document
+title: 'Work Practices and Perceptions from Women Core Developers in OSS Communities'
+author: Edna Canedo, Rodrigo Bonifácio, Márcio Okimoto, Alexander Serebrenik, Gustavo Pinto, and Eduardo Monteiro
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -21,9 +26,9 @@ require(SentimentAnalysis)
 setwd(".")
 ```
 
-# How often negative comments appear in the pull-requests from women key developers?
+## Script assessing the third research question
 
-To answer RQ3, we use one datasets. 
+To answer RQ3, we use one dataset. 
 
    * prds: contains information about the pull requests from women key developers 
    

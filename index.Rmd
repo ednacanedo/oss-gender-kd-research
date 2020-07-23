@@ -30,9 +30,12 @@ vignette: >
    
 
 #### scripts
-   * Research Question 1: [RMD File](./datasets/RQ1.Rmd) | [HTML File](./datasets/RQ1.html)
-   * Research Question 2: [RMD File](./datasets/RQ2.Rmd) | [RMD File](./datasets/RQ2.html)
-   * Research Question 3: [RMD File](./datasets/RQ3.Rmd) | [RMD File](./datasets/RQ3.html)
+   * (RQ1) How common are women core developers in OSS commu-nities?
+      * [RMD File](./analysis/RQ1.Rmd)  
+      * [HTML File](./analysis/RQ1.html)
+   * (RQ2) Is there any differences in the work practices coming fromeither women or men core developers?: 
+      * [RMD File](./analysis/RQ2.Rmd) 
+      * [RMD File](./analysis/RQ2.html)
    
 
 ### Second Study: A survey 

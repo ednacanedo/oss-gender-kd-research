@@ -139,7 +139,7 @@ colnames(commits_by_user)
 nrow(commits_by_user)
 ```
 
-### Hypothesis testing about the number of commits. 
+### (03) Hypothesis testing about the number of commits. 
 
 Now we can verify if there is any difference between these groups, in terms of total number of commits. 
 
@@ -165,7 +165,7 @@ c<-nparcomp(commits~genderGroup, data=commits_by_user, asy.method = "logit",
 summary(c)
 ```
 
-### Hypothesis testing about the frequency of commits. 
+### (04) Hypothesis testing about the frequency of commits. 
 
 Now we can verify if there is any difference between these groups, in terms of frequency of commits. 
 
@@ -205,9 +205,9 @@ summary(c)
 ```
 
 
-### Hypothesis testing about the size of the contributions 
+### (05) Hypothesis testing about the size of the contributions 
 
-#### Considering lines of code
+#### 5.1 Considering lines of code
 
 ```{r bw-line-size, fig.width= 7,fig.height = 3.5} 
 lines <- commits_by_user[,c("login", "gender", "genderGroup", 
@@ -256,7 +256,7 @@ summary(c)
 ```
 
 
-#### Considering number of files
+#### 5.2 Considering number of files
 
 ```{r bw-file-size, fig.width= 7,fig.height = 3.5} 
 files <- commits_by_user[,c("login", "gender", "genderGroup", 
@@ -299,7 +299,7 @@ summary(c)
 
 ```
 
-### Hypothesis testing about the type of the contributions 
+### (06) Hypothesis testing about the type of the contributions 
 
    * First, lets investigate the size of the comments in the commits. 
    
