@@ -1,6 +1,11 @@
 ---
-title: "Research Question 2"
-output: html_document
+title: 'Work Practices and Perceptions from Women Core Developers in OSS Communities'
+author: Edna Canedo, Rodrigo Bonifácio, Márcio Okimoto, Alexander Serebrenik, Gustavo Pinto, and Eduardo Monteiro
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -20,14 +25,16 @@ require(nparcomp)
 setwd(".")
 ```
 
-## How do the contributions of women key developers compare to the contributions of men key developers?
+## Script assessing the second research question
 
-To answer RQ2, we use four following datasets. 
+### (01) Laod the datasets 
 
-   * f_commits_ds: contains information about female contributions in terms of commits
-   * m_commits_s1_ds: contains information about the first sample of male contributions in terms of commits 
-   * m_commits_s2_ds: contains information about the second sample of male contributions in terms of commits 
-   * m_commits_s3_ds: contains information about the third sample of male contributions in terms of commits 
+To answer RQ2, we use the following datasets. 
+
+   * commits_female_categorized.csv: contains information about the contributions from the set WCD (women core developers)
+   * commits_male_s1_categorized.csv: contains information about the contributions from the set MCD1 (men core developers) 
+   * commits_male_s2_categorized.csv: contains information about the contributions from the set MCD2 (men core developers)
+   * commits_male_s3_categorized.csv: contains information about the contributions from the set MCD3 (men core developers)
 
 We first load these datasets, show some basic information, and perform some data cleanup. 
 
@@ -39,7 +46,7 @@ nrow(f_commits_ds)
 f_commits_ds["commit_date"] <- as.character(as.Date(strptime((
    f_commits_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
 
-f_commits_ds$gender <- "female"
+f_commits_ds$gender <- "women"
 f_commits_ds$genderGroup <- "WCD"
 
 m_commits_s1_ds <- read.csv("../datasets/commits_male_s1_categorized.csv", head=T, sep=";")
@@ -49,7 +56,7 @@ nrow(m_commits_s1_ds)
 m_commits_s1_ds["commit_date"] <- as.character(as.Date(strptime((
    m_commits_s1_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
 
-m_commits_s1_ds$gender <- "male"
+m_commits_s1_ds$gender <- "men"
 m_commits_s1_ds$genderGroup <- "MCD1"
 
 
@@ -60,7 +67,7 @@ nrow(m_commits_s2_ds)
 m_commits_s2_ds["commit_date"] <- as.character(as.Date(strptime((
    m_commits_s2_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
 
-m_commits_s2_ds$gender <- "male"
+m_commits_s2_ds$gender <- "men"
 m_commits_s2_ds$genderGroup <- "MCD2"
 
 
@@ -71,7 +78,7 @@ nrow(m_commits_s3_ds)
 m_commits_s3_ds["commit_date"] <- as.character(as.Date(strptime((
    m_commits_s3_ds$last_modified), "%a, %d %b %Y %H:%M:%S")))
 
-m_commits_s3_ds$gender <- "male"
+m_commits_s3_ds$gender <- "men"
 m_commits_s3_ds$genderGroup <- "MCD3"
 
 commits_ds <- rbind(f_commits_ds, m_commits_s1_ds)
@@ -106,10 +113,9 @@ sqldf("select genderGroup, count(*)
 ```
 
 
-### Summarizing our dataset 
+### (02) Summarizing our dataset 
 
-Let's summarize our dataset by key developer, and also preserving 
-his / gender and gender group. 
+Let's summarize our dataset by core developer, and also preserving his / her gender and gender group. 
 
 ```{r consolidate}
 commits_by_user <- sqldf("select login, gender, genderGroup,
@@ -184,8 +190,8 @@ bwplot(commits_by_user$frequency2~commits_by_user$genderGroup, ylab="Frequency o
 
    * Second computing the summary of the observations
 ```{r freq-summary}
-summary(commits_by_user[commits_by_user$gender == 'female',]$frequency2)
-summary(commits_by_user[commits_by_user$gender == 'male',]$frequency2)
+summary(commits_by_user[commits_by_user$gender == 'women',]$frequency2)
+summary(commits_by_user[commits_by_user$gender == 'men',]$frequency2)
 ```
 
    * Third performing a multicomparison test (using the Dunnett's method)
@@ -300,7 +306,7 @@ summary(c)
 ```{r bw-comments, fig.width=8, fig.height = 3.5}
 commits_ds["comment_size"] = nchar(as.character(commits_ds$message))
 
-boxplot(log(commits_ds$comment_size)~commits_ds$genderGroup)
+# boxplot(log(commits_ds$comment_size)~commits_ds$genderGroup)
 
 wilcox.test(comment_size~gender, data = commits_ds)
 ```
@@ -314,7 +320,11 @@ contributions_ds <- sqldf("select login, gender, genderGroup, class, count(*) to
                            group by login, gender, genderGroup, class")
 
 
-bwplot(log(total)~genderGroup|class, data=contributions_ds, par.strip.text=list(cex=0.75),layout=c(5,1))
+bwplot(log(total)~genderGroup|class, data=contributions_ds,  par.settings = list(
+                               axis.text = list(cex = 0.55),
+                               par.xlab.text = list(cex = 0.75),
+                               par.ylab.text = list(cex = 0.75)
+                          ),  par.strip.text = list(cex = 0.65), layout=c(5,1))
 
 chisq.test(commits_ds$class, commits_ds$gender)
 ```
