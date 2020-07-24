@@ -1,6 +1,6 @@
 ---
 title: 'Work Practices and Perceptions from Women Core Developers in OSS Communities'
-author: Edna Canedo, Rodrigo Bonifácio, Márcio Okimoto, Alexander Serebrenik, Gustavo Pinto, and Eduardo Monteiro
+author: Edna Dias Canedo, Rodrigo Bonifácio, Márcio Okimoto, Alexander Serebrenik, Gustavo Pinto, and Eduardo Monteiro
 output:
   prettydoc::html_pretty:
     theme: cayman
