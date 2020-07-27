@@ -150,7 +150,7 @@ head(distinct_tfs, 50)
 nrow(distinct_tfs[distinct_tfs$total>1, ])
 ```
 
-###  (03) RQ1. How common are women core developers in OSS communities?
+###  (03) RQ1. How common are women core developers in OSS?  
 
 We answer this research question using an exploratory data analysis. 
 We first report the characteristics of the projects (see table bellow). 

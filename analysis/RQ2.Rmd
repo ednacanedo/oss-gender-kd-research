@@ -192,6 +192,13 @@ bwplot(commits_by_user$frequency2~commits_by_user$genderGroup, ylab="Frequency o
 ```{r freq-summary}
 summary(commits_by_user[commits_by_user$gender == 'women',]$frequency2)
 summary(commits_by_user[commits_by_user$gender == 'men',]$frequency2)
+
+
+summary(commits_by_user[commits_by_user$genderGroup == 'WCD',]$frequency2)
+summary(commits_by_user[commits_by_user$genderGroup == 'MCD1',]$frequency2)
+summary(commits_by_user[commits_by_user$genderGroup == 'MCD2',]$frequency2)
+summary(commits_by_user[commits_by_user$genderGroup == 'MCD3',]$frequency2)
+
 ```
 
    * Third performing a multicomparison test (using the Dunnett's method)
@@ -313,25 +320,12 @@ wilcox.test(comment_size~gender, data = commits_ds)
 
    * Second, lets investigate the type of the contributions. 
 
-```{r bw-contribution, fig.width=8, fig.height = 3.5}
 
-contributions_ds <- sqldf("select login, gender, genderGroup, class, count(*) total
-                           from commits_ds 
-                           group by login, gender, genderGroup, class")
+There is some differences in the number of commits from the groups WCD, MCD1, MCD2, and MCD3. Therefore, we first balance the dataset. 
 
+```{r}
+set.seed(5)
 
-bwplot(log(total)~genderGroup|class, data=contributions_ds,  par.settings = list(
-                               axis.text = list(cex = 0.55),
-                               par.xlab.text = list(cex = 0.75),
-                               par.ylab.text = list(cex = 0.75)
-                          ),  par.strip.text = list(cex = 0.65), layout=c(5,1))
-
-chisq.test(commits_ds$class, commits_ds$gender)
-```
-
-There is a huge difference in the number of commits. Perhaps we should first balance the dataset. 
-
-```{r bw-balanced-contribution, fig.width=10, fig.height = 3.5}
 m_commits_s1_ds <- m_commits_s1_ds[sample(nrow(m_commits_s1_ds), 22326, replace = FALSE, prob = NULL),]
 
 m_commits_s2_ds <- m_commits_s2_ds[sample(nrow(m_commits_s2_ds), 22326, replace = FALSE, prob = NULL),]
@@ -347,7 +341,11 @@ nrow(m_commits_s3_ds)
 commits_ds <- rbind(f_commits_ds, m_commits_s1_ds)
 commits_ds <- rbind(commits_ds, m_commits_s2_ds)
 commits_ds <- rbind(commits_ds, m_commits_s3_ds)
+```
 
+And now we execute the analysis using a balanced dataset. 
+
+```{r bw-balanced-contribution, fig.width=10, fig.height = 3.5}
 contributions_ds <- sqldf("select login, gender, genderGroup, class, count(*) total
                            from commits_ds 
                            group by login, gender, genderGroup, class")
@@ -359,5 +357,30 @@ bwplot(log(total)~genderGroup|class, data=contributions_ds,  par.settings = list
                                par.ylab.text = list(cex = 0.75)
                           ),  par.strip.text = list(cex = 0.65), layout=c(5,1))
 
+prop.table(table(commits_ds$class, commits_ds$genderGroup), 1)
+chisq.test(commits_ds$class, commits_ds$genderGroup)
+```
+
+
+(a) Comparing the groups WCD and MCD1
+```{r}
+commits_ds <- rbind(f_commits_ds, m_commits_s1_ds)
+prop.table(table(commits_ds$class, commits_ds$gender), 1)
 chisq.test(commits_ds$class, commits_ds$gender)
+```
+
+(b) Comparing the groups WCD and MCD2
+
+```{r}
+commits_ds <- rbind(f_commits_ds, m_commits_s2_ds)
+prop.table(table(commits_ds$class, commits_ds$gender), 1)
+chisq.test(commits_ds$class, commits_ds$gender)
+```
+
+(c) Comparing the groups WCD and MCD3
+```{r}
+commits_ds <- rbind(f_commits_ds, m_commits_s3_ds)
+prop.table(table(commits_ds$class, commits_ds$gender), 1)
+chisq.test(commits_ds$class, commits_ds$gender)
+
 ```

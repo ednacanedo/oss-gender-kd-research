@@ -1,11 +1,14 @@
 ---
-title: 'Work Practices and Perceptions from Women Core Developers in OSS Communities'
-author: Edna Dias Canedo, Rodrigo Bonifácio, Márcio Okimoto, Alexander Serebrenik, Gustavo Pinto, and Eduardo Monteiro
+title: "Work Practices and Perceptions from Women Core Developers in OSS Communities"
+author: Edna Dias Canedo, Rodrigo Bonifácio, Márcio Okimoto, Alexander Serebrenik,
+  Gustavo Pinto, and Eduardo Monteiro
 output:
-  prettydoc::html_pretty:
-    theme: cayman
-    highlight: github
+  html_document:
+    df_print: paged
   pdf_document: default
+  prettydoc::html_pretty:
+    highlight: github
+    theme: cayman
 ---
 
 ```{r setup, include=FALSE}
@@ -99,18 +102,24 @@ kable(summary)
 
 ### (03) How important is gender diversity in OSS Communities?
 
-```{r}
+```{r question12}
+relevance_options <- read.csv("../datasets/relevance_options.csv", head=T, sep=",")
+
 ds1 <- ds[, c(1,9)]
-colnames(ds1) <- c("Id", "RelevanceOfDiversity")
-summary <- sqldf("select RelevanceOfDiversity, count(*) Total from ds1 group by RelevanceOfDiversity order by 2 desc")
+colnames(ds1) <- c("Id", "Relevance")
+
+ds1 <- merge(ds1, relevance_options)
+
+summary <- sqldf("select RelevanceId, Relevance, count(*) Total from ds1 group by RelevanceId, Relevance")
+
 kable(summary)
-barplot(summary$Total, ylim=c(0, 25), col = viridis(nrow(summary)))
-legend("topright", legend=summary$RelevanceOfDiversity, fill = viridis(nrow(summary)))
+barplot(summary$Total, ylim=c(0, 25), col = gray.colors(nrow(summary))) # viridis(nrow(summary)))
+legend("topleft", inset=.02, legend=summary$Relevance, cex=0.8, fill = gray.colors(nrow(summary))) # viridis(nrow(summary)))
 ```
 
 ### (04) How often do you feel that your contributions were not well received due to your gender?
 
-```{r}
+```{r question11}
 frequency_options <- read.csv("../datasets/frequency_options.csv", head=T, sep=",")
 ds1 <- ds[, c(1,8)]
 colnames(ds1)
@@ -120,8 +129,8 @@ ds1 <- merge(ds1, frequency_options)
 
 summary <- sqldf("select FrequencyId, Frequency, count(*) Total from ds1 group by FrequencyId, Frequency order by 1")
 kable(summary)
-barplot(summary$Total, ylim=c(0, 25), col = viridis(nrow(summary)))
-legend("topright", legend=summary$Frequency, fill = viridis(nrow(summary)))
+barplot(summary$Total, ylim=c(0, 25), col = gray.colors(nrow(summary))) # viridis(nrow(summary)))
+legend("topright", legend=summary$Frequency, cex=0.8, fill = gray.colors(nrow(summary))) # viridis(nrow(summary)))
 ```
 
 ### (05) Are you happy with your participation in OSS Communities?

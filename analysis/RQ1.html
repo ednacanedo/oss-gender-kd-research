@@ -302,7 +302,7 @@ code span.ot { color: #007020; }
 <span id="cb22-9"><a href="#cb22-9"></a></span>
 <span id="cb22-10"><a href="#cb22-10"></a><span class="kw">print</span>(<span class="kw">xtable</span>(<span class="kw">t</span>(pds_summary)), <span class="dt">type=</span><span class="st">&quot;latex&quot;</span>)</span></code></pre></div>
 <pre><code>## % latex table generated in R 3.6.1 by xtable 1.8-4 package
-## % Fri Jul 24 12:30:10 2020
+## % Mon Jul 27 10:04:41 2020
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{rrrrrrr}
@@ -426,8 +426,8 @@ code span.ot { color: #007020; }
 <div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1"></a><span class="kw">nrow</span>(distinct_tfs[distinct_tfs<span class="op">$</span>total<span class="op">&gt;</span><span class="dv">1</span>, ])</span></code></pre></div>
 <pre><code>## [1] 401</code></pre>
 </div>
-<div id="rq1.-how-common-are-women-core-developers-in-oss-communities" class="section level3">
-<h3>(03) RQ1. How common are women core developers in OSS communities?</h3>
+<div id="rq1.-how-common-are-women-core-developers-in-oss" class="section level3">
+<h3>(03) RQ1. How common are women core developers in OSS?</h3>
 <p>We answer this research question using an exploratory data analysis. We first report the characteristics of the projects (see table bellow).</p>
 <div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1"></a>ds_summary &lt;-<span class="st"> </span><span class="kw">sqldf</span>(<span class="st">&quot;select language, full_name, lines, </span></span>
 <span id="cb40-2"><a href="#cb40-2"></a><span class="st">                            num_contributors, forks, watchers, count(distinct login) num_tf</span></span>
@@ -450,7 +450,7 @@ code span.ot { color: #007020; }
 <span id="cb42-10"><a href="#cb42-10"></a></span>
 <span id="cb42-11"><a href="#cb42-11"></a><span class="kw">print</span>(<span class="kw">xtable</span>(ds_summary_language), <span class="dt">type=</span><span class="st">&quot;latex&quot;</span>)</span></code></pre></div>
 <pre><code>## % latex table generated in R 3.6.1 by xtable 1.8-4 package
-## % Fri Jul 24 12:30:10 2020
+## % Mon Jul 27 10:04:41 2020
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{rlrrrrr}
@@ -633,7 +633,7 @@ code span.ot { color: #007020; }
 <span id="cb60-43"><a href="#cb60-43"></a></span>
 <span id="cb60-44"><a href="#cb60-44"></a><span class="kw">print</span>(<span class="kw">xtable</span>(tab1[,<span class="kw">c</span>(<span class="st">&quot;language&quot;</span>, <span class="st">&quot;projects&quot;</span>, <span class="st">&quot;contributors&quot;</span>, <span class="st">&quot;total_kds&quot;</span>, <span class="st">&quot;total_men&quot;</span>, <span class="st">&quot;total_women&quot;</span>, <span class="st">&quot;total_unknown&quot;</span>, <span class="st">&quot;total_projects_with_women&quot;</span>, <span class="st">&quot;percentage&quot;</span>)]), <span class="dt">type=</span><span class="st">&#39;latex&#39;</span>)</span></code></pre></div>
 <pre><code>## % latex table generated in R 3.6.1 by xtable 1.8-4 package
-## % Fri Jul 24 12:30:14 2020
+## % Mon Jul 27 10:04:46 2020
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{rlrrrrrrrr}
