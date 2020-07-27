@@ -1,5 +1,7 @@
 # Work Practices and Perceptions from Women Core Developers in OSS Communities
 
+-> ESEM 2020 <-
+
 ### Authors
 
    * Edna Dias Canedo 
@@ -25,7 +27,7 @@ The tools we used to mine the GitHub repositories are available at [https://gith
 GitHub API. Changes in this API might break these tools. 
 
 #### datasets
-   * [all developers](datasets/all_commiters_repo.csv)
+   * [all developers](datasets/all_committers_repo.csv)
    * [all truck factor developer](datasets/tf.csv)
    * [contributions of WCD core developers](datasets/commits_female_categorized.csv)
    * [contributions of MCD1 core developers](datasets/commits_male_s1_categorized.csv)
