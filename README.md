@@ -25,38 +25,38 @@ The tools we used to mine the GitHub repositories are available at [https://gith
 GitHub API. Changes in this API might break these tools. 
 
 #### datasets
-   * [all developers](./datasets/all_commiters_repo.csv)
-   * [all truck factor developer](./datasets/tf.csv)
-   * [contributions of WCD core developers](./datasets/commits_female_categorized.csv)
-   * [contributions of MCD1 core developers](./datasets/commits_male_s1_categorized.csv)
-   * [contributions of MCD2 core developers](./datasets/commits_male_s2_categorized.csv)
-   * [contributions of MCD3 core developers](./datasets/commits_male_s3_categorized.csv)
+   * [all developers](datasets/all_commiters_repo.csv)
+   * [all truck factor developer](datasets/tf.csv)
+   * [contributions of WCD core developers](datasets/commits_female_categorized.csv)
+   * [contributions of MCD1 core developers](datasets/commits_male_s1_categorized.csv)
+   * [contributions of MCD2 core developers](datasets/commits_male_s2_categorized.csv)
+   * [contributions of MCD3 core developers](datasets/commits_male_s3_categorized.csv)
    
 
 #### scripts
    * (RQ1) How common are women core developers in OSS?
-      * [RMD File](./analysis/RQ1.Rmd)  
-      * [HTML File](./analysis/RQ1.html)
+      * [RMD File](analysis/RQ1.Rmd)  
+      * [HTML File](https://htmlpreview.github.io/?https://github.com/ednacanedo/oss-gender-kd-research/blob/master/analysis/RQ1.html)
    * (RQ2) Are there differences in the work practices of women or men core developers? 
-      * [RMD File](./analysis/RQ2.Rmd) 
-      * [HTML File](./analysis/RQ2.html)
+      * [RMD File](analysis/RQ2.Rmd) 
+      * [HTML File](https://htmlpreview.github.io/?https://github.com/ednacanedo/oss-gender-kd-research/blob/master/analysis/RQ2.html)
    
 
 ### Second Study: A survey 
 
 #### datasets 
 
- * [answers to the likert scale](./datasets/survey-closed-questions.csv)
+ * [answers to the likert scale](datasets/survey-closed-questions.csv)
   
 #### scripts
 
  * Assessment of the likert scale questions
       * [RMD File](./analysis/RQS.Rmd) 
-      * [HTML File](./analysis/RQS.html)
+      * [HTML File](https://htmlpreview.github.io/?https://github.com/ednacanedo/oss-gender-kd-research/blob/master/analysis/RQS.html)
 
 #### Artifacts 
 
    * [Survey Questions](./survey/questions.html)
-   * [Table SM1](./survey/tableSM1.html)
-   * [Table SM2](./survey/tableSM2.html)
+   * [Table SM1](https://htmlpreview.github.io/?https://github.com/ednacanedo/oss-gender-kd-research/blob/master/survey/tableSM1.html)
+   * [Table SM2](https://htmlpreview.github.io/?https://github.com/ednacanedo/oss-gender-kd-research/blob/master/survey/tableSM2.html)
    
